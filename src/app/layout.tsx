@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
@@ -24,10 +25,22 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
-        {children}
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+        <header className="flex items-center justify-center pt-8 border-b border-gray-100 bg-white">
+          <Image
+            src="/logo/logo.png"
+            alt="Logo"
+            width={150}
+            height={80}
+          />
+        </header>
+
+        <main>{children}</main>
+
+        <footer className="flex flex-col items-center justify-center py-6 mt-8 border-t border-gray-100 text-gray-600">
+          <div className="font-semibold">© {new Date().getFullYear()}</div>
+          <div className="text-sm mt-1">All Content Rights Reserved</div>
+        </footer>
       </body>
     </html>
   );

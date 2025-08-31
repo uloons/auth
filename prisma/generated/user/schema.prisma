@@ -1,0 +1,68 @@
+// prisma/user.schema.prisma
+datasource db {
+  provider = "mysql"
+  url      = env("USER_DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "./generated/user"
+}
+
+// Application models for registrations
+enum UserKind {
+  INDIVIDUAL
+  BUSINESS
+}
+
+model User {
+  id                  String               @id
+  kind                UserKind
+  name                String? // for individual
+  email               String               @unique
+  phone               String               @unique
+  businessName        String? // for business
+  gstin               String? // optional
+  password            String? // hashed password, set when user creates password
+  emailVerified       Boolean              @default(false)
+  phoneVerified       Boolean              @default(false)
+  suspended           Boolean              @default(false)
+  suspended_number    Int                  @default(0)
+  terminated          Boolean              @default(false)
+  // relation: user can have many password reset tokens
+  passwordResetTokens PasswordResetToken[]
+  // relation: user can have many login records
+  loginRecords        LoginRecord[]
+  createdAt           DateTime             @default(now())
+
+  @@index([email])
+  @@map("users")
+}
+
+model PasswordResetToken {
+  id        String   @id @default(cuid())
+  tokenHash String // sha256 of token
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+  expiresAt DateTime
+  used      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([tokenHash])
+}
+
+// Keep login records for every login/logout event. Do not delete old records.
+model LoginRecord {
+  id          String    @id @default(cuid())
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId      String
+  ip          String? // optional, may not be available in all environments
+  location    Json? // optional, store coarse location info
+  userAgent   String? // optional
+  loggedInAt  DateTime  @default(now())
+  loggedOutAt DateTime?
+  createdAt   DateTime  @default(now())
+
+  @@index([userId])
+  @@map("login_records")
+}
